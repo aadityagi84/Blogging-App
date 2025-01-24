@@ -4,6 +4,7 @@ import Users from "../pages/Users";
 import TableData from "../pages/Table";
 import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Login";
+import Signup from "../pages/Signup";
 
 function Router() {
   return (
@@ -14,6 +15,8 @@ function Router() {
         <Route path="users" element={<Users />} />
       </Route>
       <Route path="login" element={<Login />} />
+
+      <Route path="signup" element={<Signup />} />
     </Routes>
   );
 }

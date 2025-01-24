@@ -8,9 +8,7 @@ const signUpController = async (req, res) => {
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      // return res.status(400).json({ msg: errors.array()[0].msg });
-      const errorMessage = errors.array()[0].msg;
-      return res.status(400).render("signup", { errorMessage });
+      return res.status(400).json({ msg: errors.array()[0].msg });
     }
 
     // Input validation
@@ -24,25 +22,44 @@ const signUpController = async (req, res) => {
       return res.status(400).send({ msg: "Password is required" });
     }
 
-    // Hash the password for security
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Execute the SQL query
+    // Check if email already exists
     pool.query(
-      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [name, email, hashedPassword],
-      (err, result) => {
+      "SELECT * FROM users WHERE email = ?",
+      [email],
+      async (err, rows) => {
         if (err) {
-          console.error("Error inserting user:", err);
+          console.error("Error checking email:", err);
           return res
             .status(500)
-            .send({ msg: "Error creating user", error: err });
-          alert("Error creating user", err);
+            .send({ msg: "Error checking email", error: err });
         }
-        res
-          .status(201)
-          .send({ msg: "User created successfully", userId: result.insertId });
-        return;
+
+        // If email already exists, send a response indicating it's taken
+        if (rows.length > 0) {
+          return res.status(400).send({ msg: "Email already in use" });
+        }
+
+        // Hash the password for security
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Proceed with user insertion
+        pool.query(
+          "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+          [name, email, hashedPassword],
+          (err, result) => {
+            if (err) {
+              console.error("Error inserting user:", err);
+              return res
+                .status(500)
+                .send({ msg: "Error creating user", error: err });
+            }
+            res.status(201).send({
+              msg: "User created successfully",
+              userId: result.insertId,
+            });
+            return;
+          }
+        );
       }
     );
   } catch (error) {

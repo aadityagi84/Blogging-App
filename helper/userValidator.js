@@ -7,8 +7,9 @@ exports.signupValidator = [
     .notEmpty()
     .withMessage("Name is required")
     .isLength({ min: 2 })
-    .withMessage("Name must be at least 2 characters long"),
-
+    .withMessage("Name must be at least 2 characters long")
+    .matches(/^[A-Za-z\s]+$/)
+    .withMessage("Name must only contain letters and spaces"),
   // Validate the email
   check("email")
     .trim()
